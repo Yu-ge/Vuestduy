@@ -27,7 +27,7 @@
           :default-active="activePath"
         >
           <!-- 一级菜单 -->
-          <el-submenu :index="items.id+''" :key="items.id" v-for="(items) in menulist" >
+          <el-submenu :index="items.id+''" :key="items.id" v-for="(items) in menulist">
             <!-- 模板区域 -->
             <template slot="title">
               <!-- 图标 -->
@@ -36,7 +36,12 @@
               <span>{{items.authName}}</span>
             </template>
             <!-- 二级菜单 -->
-            <el-menu-item :index="'/' + item.path" :key="item.id" v-for="(item) in items.children" @click="saveNavState('/' + item.path)">
+            <el-menu-item
+              :index="'/' + item.path"
+              :key="item.id"
+              v-for="(item) in items.children"
+              @click="saveNavState('/' + item.path)"
+            >
               <!-- 模板区域 -->
               <template slot="title">
                 <!-- 图标 -->
@@ -98,11 +103,11 @@ export default {
     async getMenuList() {
       // const { data: res } = await this.$http.get('menus')
       const { data: res } = await menus_Api()
-      console.log(res)
+      // console.log(res)
       if (res.meta.status !== 200) return this.$message.error(res.meta.msg)
       this.menulist = res.data
     },
-     // 保存链接的激活状态
+    // 保存链接的激活状态
     saveNavState(activePath) {
       window.sessionStorage.setItem('activePath', activePath)
       this.activePath = activePath

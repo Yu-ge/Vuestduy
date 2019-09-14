@@ -48,3 +48,30 @@ export const edituser_api = params => {
 export const deleteuser_api = params => {
     return axios.delete(`users/${params.id}`)
 }
+// 权限列表获取
+export const getrightlist_api = params => {
+    return axios.get(`rights/list`)
+}
+// 角色列表
+export const getrolelist_api = params => {
+    return axios.get(`roles`)
+}
+// 添加角色
+export const addrole_api = params=>{
+    return axios.post(`roles`,params)
+}
+// id查询角色信息
+export const showrole_api = params => {
+    return axios.get(`roles/${params}`)
+}
+// i编辑角色提交
+export const editrole_api = params => {
+    return axios.put(`roles/${params.id}`,{
+        roleName:params.roleName,
+        roleDesc:params.roleDesc
+    })
+}
+// 根据id删除用户
+export const deleterole_api = params => {
+    return axios.delete(`roles/${params.id}`)
+}

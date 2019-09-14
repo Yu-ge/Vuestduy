@@ -264,6 +264,8 @@ export default {
     // 添加用户
     addUser() {
       this.$refs.addformref.validate(async valid => {
+        console.log(valid);
+        
         if (!valid) return
         const { data: res } = await adduser_api(this.addform)
         if (res.meta.status !== 200) {
@@ -320,14 +322,13 @@ export default {
         return this.$message.info('已经取消了删除')
       }
       console.log('已经删除了')
-      const {data:res} = await deleteuser_api({id})
+      const { data: res } = await deleteuser_api({ id })
       if (res.meta.status !== 200) {
-          this.$message.error('删除用户失败！')
-        }
-        this.$message.success('删除用户成功！')
-        // 重新获取用户列表数据
-        this.init()
-      
+        this.$message.error('删除用户失败！')
+      }
+      this.$message.success('删除用户成功！')
+      // 重新获取用户列表数据
+      this.init()
     }
   }
 }
