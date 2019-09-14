@@ -13,15 +13,38 @@ axios.interceptors.request.use(config => {
     // 在最后必须 return config
     return config
 })
-//登录接口
+// 登录接口
 export const login_Api = params => {
     return axios.post('login', params)
 }
-//获取home的导航菜单
+// 获取home的导航菜单
 export const menus_Api = params => {
     return axios.get('menus', params)
 }
-//获取用户列表
+// 获取用户列表
 export const userlist_Api = params => {
-    return axios.get('users', {params:params})
+    return axios.get('users', { params: params })
+}
+// 用户状态改变
+export const userstate_api = params => {
+    return axios.put(`users/${params.uId}/state/${params.type}`)
+}
+//添加用户
+export const adduser_api = params => {
+    return axios.post('users', params)
+}
+// id查询用户信息
+export const showuser_api = params => {
+    return axios.get(`users/${params}`)
+}
+// i编辑用户提交
+export const edituser_api = params => {
+    return axios.put(`users/${params.id}`,{
+        email:params.email,
+        mobile:params.mobile
+    })
+}
+// 根据id删除用户
+export const deleteuser_api = params => {
+    return axios.delete(`users/${params.id}`)
 }
