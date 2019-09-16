@@ -6,6 +6,10 @@ import welcome from './components/welcome.vue'
 import users from './components/user/users.vue'
 import Rights from './components/power/Rights.vue'
 import Roles from './components/power/Roles.vue'
+// 分类
+import Cate from './components/goods/Cate.vue'
+import goods from './components/goods/List.vue'
+import Params from './components/goods/Params.vue'
 Vue.use(Router)
 
 const router = new Router({
@@ -24,7 +28,10 @@ const router = new Router({
         { path: '/welcome', component: welcome },
         { path: '/users', component: users },
         { path: '/rights', component: Rights },
-        { path: '/roles', component: Roles }
+        { path: '/roles', component: Roles },
+        { path: '/categories', component: Cate },
+        { path: '/goods', component: goods },
+        { path: '/params', component: Params },
       ]
     }
   ]

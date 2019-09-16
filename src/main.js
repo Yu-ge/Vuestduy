@@ -14,8 +14,14 @@ Vue.use(ElementUI)
 // 引入入阿里字体图标库
 import './assets/fonts/iconfont.css'
 
+// 引入 第三方表格插件
+import ZKtable from 'vue-table-with-tree-grid'
+// vue-table-with-tree-grid
+Vue.component('tree-table',ZKtable)
 
-
+// 公共组件
+import coms from './common/com.vue'
+Vue.component('aaa', coms)
 
 Vue.config.productionTip = false
 new Vue({

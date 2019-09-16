@@ -50,7 +50,12 @@
               ></el-button>
               <!-- 分配权限 -->
               <el-tooltip effect="dark" content="分配权限" placement="top" :enterable="false">
-                <el-button size="mini" type="warning" icon="el-icon-setting"></el-button>
+                <el-button
+                  @click="showeditroles(scope.row)"
+                  size="mini"
+                  type="warning"
+                  icon="el-icon-setting"
+                ></el-button>
               </el-tooltip>
             </template>
           </el-table-column>
@@ -119,6 +124,30 @@
         <el-button type="primary" @click="edituser(editoform) ">确 定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 分配用户角色 -->
+    <el-dialog title="分配角色" :visible.sync="setrolevisble" @close="setRoleDialogClosed">
+      <div>
+        <p>当前用户:{{userroles.username}}</p>
+        <p>当前角色:{{userroles.role_name}}</p>
+        <p>
+          分配新角色:
+          <el-select v-model="selectedRoleId" placeholder="请选择">
+            <el-option
+              v-for="item in roleslist"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </p>
+      </div>
+      <!-- 底部 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="setrolevisble = false">取 消</el-button>
+        <el-button type="primary" @click="saverole() ">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -128,7 +157,9 @@ import {
   userstate_api,
   adduser_api,
   showuser_api,
-  deleteuser_api
+  deleteuser_api,
+  getroles_api,
+  putrole_api
 } from '@/api'
 // import { userstate_api } from '@/api'
 export default {
@@ -214,7 +245,14 @@ export default {
           { required: true, message: '请输入手机号', trigger: 'blur' },
           { validator: checkMobile, trigger: 'blur' }
         ]
-      }
+      },
+      // 分配新角色
+      setrolevisble: false,
+      // 分配角色id
+      selectedRoleId: '',
+      // 角色列表
+      roleslist: [],
+      userroles: {}
     }
   },
   created() {
@@ -264,12 +302,12 @@ export default {
     // 添加用户
     addUser() {
       this.$refs.addformref.validate(async valid => {
-        console.log(valid);
-        
+        console.log(valid)
+
         if (!valid) return
         const { data: res } = await adduser_api(this.addform)
         if (res.meta.status !== 200) {
-          this.$message.error('添加用户失败！')
+          return this.$message.error('添加用户失败！')
         }
         this.$message.success('添加用户成功！')
         // 隐藏添加用户的对话框
@@ -329,6 +367,41 @@ export default {
       this.$message.success('删除用户成功！')
       // 重新获取用户列表数据
       this.init()
+    },
+    // 展示分配角色
+    async showeditroles(userInfo) {
+      this.userroles = userInfo
+
+      console.log(this.userroles)
+      const { data: res } = await getroles_api()
+      // console.log(res);
+      // 数据获取并赋值
+      this.roleslist = res.data
+      // 获取修改的id
+      this.selectedRoleId
+      this.setrolevisble = true
+    },
+    // 点击按钮 分配角色
+    async saverole() {
+      if (!this.selectedRoleId) {
+        return this.$message.error('请选择分配的信息')
+      }
+      // this.userroles.id putrole_api
+      const { data: res } = await putrole_api({
+        rid: this.selectedRoleId,
+        id: this.userroles.id
+      })
+      if (res.meta.status !== 200) {
+        return this.$message.error('分配失败！')
+      }
+      this.$message.success('分配角色成功！')
+      this.init()
+      this.setrolevisble = false
+    },
+    // 监听分配角色对话框的关闭事件
+    setRoleDialogClosed() {
+      this.selectedRoleId = ''
+      this.userroles = {}
     }
   }
 }

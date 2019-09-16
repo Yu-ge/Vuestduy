@@ -26,7 +26,7 @@
             >
               <!-- 一级 -->
               <el-col :span="5">
-                <el-tag>{{item1.authName}}</el-tag>
+                <el-tag closable @close="removeright(props.row , item1.id)">{{item1.authName}}</el-tag>
                 <i class="el-icon-caret-right"></i>
               </el-col>
               <!-- 二级三级 -->
@@ -38,7 +38,11 @@
                 >
                   <!-- 二级 -->
                   <el-col :span="7">
-                    <el-tag type="success ">{{item2.authName}}</el-tag>
+                    <el-tag
+                      type="success "
+                      @close="removeright(props.row , item2.id)"
+                      closable
+                    >{{item2.authName}}</el-tag>
                     <i class="el-icon-caret-right"></i>
                   </el-col>
                   <!-- 三级 -->
@@ -47,6 +51,8 @@
                       type="warning"
                       :key="item3.id"
                       v-for="(item3 ) in item2.children"
+                      closable
+                      @close="removeright(props.row , item3.id)"
                     >{{item3.authName}}</el-tag>
                   </el-col>
                 </el-row>
@@ -71,7 +77,12 @@
               type="danger"
               icon="el-icon-delete"
             >删除</el-button>
-            <el-button size="mini" type="warning" icon="el-icon-setting">分配权限</el-button>
+            <el-button
+              @click="showsetVisible(scope.row)"
+              size="mini"
+              type="warning"
+              icon="el-icon-setting"
+            >分配权限</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -109,6 +120,24 @@
         <el-button type="primary" @click="editrole(editroledata)">确 定</el-button>
       </div>
     </el-dialog>
+    <!-- 分配权限 -->
+    <el-dialog title="修改角色" :visible.sync="setVisible" @close="setclosed">
+      <el-tree
+        ref="treeref"
+        default-expand-all
+        :data="rightslist"
+        show-checkbox
+        :props="treeProps"
+        node-key="id"
+        @node-click="handleNodeClick"
+        :default-checked-keys="defkeys"
+      ></el-tree>
+      <!-- 底部 -->
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="setVisible = false">取 消</el-button>
+        <el-button type="primary" @click="editright()">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -117,12 +146,17 @@ import {
   getrolelist_api,
   addrole_api,
   showrole_api,
-  editrole_api
+  editrole_api,
+  deleteright_api,
+  getrightstree_api,
+  postright_api
 } from '@/api'
 export default {
   data() {
     return {
+      // 角色列表
       rolelist: [],
+      // 添加角色
       addroledata: {
         roleName: '',
         roleDesc: ''
@@ -132,6 +166,7 @@ export default {
       addrolerules: {
         roleName: [{ required: true, message: '请输入角色名', trigger: 'blur' }]
       },
+      // 修改角色
       editVisible: false,
       editroledata: {
         roleName: '',
@@ -139,19 +174,39 @@ export default {
       },
       editrolerules: {
         roleName: [{ required: true, message: '请输入角色名', trigger: 'blur' }]
-      }
+      },
+      // 分配权限
+      rightslist: [],
+      treeProps: {
+        children: 'children',
+        label: 'authName'
+      },
+      setVisible: false,
+      // 默认选中的
+      defkeys: [],
+      roleId: ''
     }
   },
   created() {
     this.getrolelist()
   },
   methods: {
+    // 获取用户表
     async getrolelist() {
       const { data: res } = await getrolelist_api()
       // console.log(res);
       this.rolelist = res.data
-      console.log(this.rolelist)
+      // console.log(this.rolelist)
     },
+    // 获取权限树
+    async getrightslist() {
+      const { data: res } = await getrightstree_api()
+      this.rightslist = res.data
+    },
+    handleNodeClick(data) {
+      console.log(data)
+    },
+
     showaddrole() {
       this.addVisible = true
     },
@@ -204,8 +259,8 @@ export default {
     },
     // 删除角色
     async removerole(id) {
-      console.log(id);
-      
+      console.log(id)
+
       const confirmResult = await this.$confirm(
         '此操作将永久删除该用户, 是否继续?',
         '提示',
@@ -221,10 +276,10 @@ export default {
         return this.$message.info('已经取消了删除')
       }
       console.log('已经删除了')
-      
-      const { data: res } = await deleterole_api({id})
-      console.log(res);
-      
+
+      const { data: res } = await deleterole_api({ id })
+      console.log(res)
+
       if (res.meta.status !== 200) {
         return this.$message.error('删除用户失败！')
       }
@@ -233,6 +288,84 @@ export default {
       this.editVisible = false
       // 重新获取用户列表数据
       this.getrolelist()
+    },
+    // 删除权限
+    async removeright(role, id) {
+      const confirmResult = await this.$confirm(
+        '此操作将永久删除该用户, 是否继续?',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      ).catch(err => err)
+      // 确认输出，返回值为 confirm
+      // 取消了 返回值为 cancel
+      if (confirmResult !== 'confirm') {
+        return this.$message.info('已经取消了删除')
+      }
+      const { data: res } = await deleteright_api({
+        roleId: role.id,
+        rightId: id
+      })
+      if (res.meta.status !== 200) {
+        return this.$message.error('删除权限失败！')
+      }
+      this.$message.success('删除权限成功！')
+      role.children = res.data
+    },
+    // 展示权限树形图
+    showsetVisible(role) {
+      // 重新获取权限列表
+      this.getrightslist()
+      // 调用递归 获取三级权限id
+      this.getleafkeys(role, this.defkeys)
+      // console.log(this.defkeys)
+      // 获取分配权限的用户id
+      this.roleId = role.id
+      this.setVisible = true
+      // console.log(role)
+    },
+    // 修改分配权限
+    async editright() {
+      // console.log(this.roleId)
+      // 拼接选中节点的id
+      const keys = [
+        ...this.$refs.treeref.getCheckedKeys(),
+        ...this.$refs.treeref.getHalfCheckedKeys()
+      ]
+      // 拼接字符串，准备转递参数
+      const idstr = keys.join(',')
+      // console.log(idstr);
+      // postright_api
+      // 调用postright_api 接口
+      const { data: res } = await postright_api({
+        roleId: this.roleId,
+        rids: idstr
+      })
+      if (res.meta.status !== 200) {
+        return this.$message.error('分配权限失败！')
+      }
+      this.$message.success('分配权限成功！')
+      // 隐藏树形图
+      this.setVisible = false
+      // 重新获取用户列表数据
+      this.getrolelist()
+    },
+    // 递归获取 三级权限id 并保存在defkeys中
+    getleafkeys(node, arr) {
+      if (!node.children) {
+        return arr.push(node.id)
+      }
+      node.children.forEach(item => {
+        this.getleafkeys(item, arr)
+      })
+    },
+    // 监听分配权限对话框关闭
+    setclosed() {
+      this.defkeys = []
+      // console.log(this.defkeys)
     }
   }
 }
@@ -246,5 +379,9 @@ export default {
 }
 .bdbottom {
   border-bottom: 1px solid #eee;
+}
+.vcenter {
+  display: flex;
+  align-items: center;
 }
 </style>

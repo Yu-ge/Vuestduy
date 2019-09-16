@@ -75,3 +75,29 @@ export const editrole_api = params => {
 export const deleterole_api = params => {
     return axios.delete(`roles/${params.id}`)
 }
+// 根据id删除用户
+export const deleteright_api = params => {
+    return axios.delete(`roles/${params.roleId}/rights/${params.rightId}`)
+}
+// 权限列表树形图获取
+export const getrightstree_api = params => {
+    return axios.get(`rights/tree`)
+}
+// 角色授权
+export const postright_api = params => {
+    return axios.post(`roles/${params.roleId}/rights`,{rids:params.rids})
+}
+// 查询角色
+export const getroles_api = params=>{
+    return axios.get(`roles`)
+}
+// 更新角色
+export const putrole_api = params=>{
+    return axios.put(`users/${params.id}/role`,{rid:params.rid})
+}
+// 获取商品分类数据列表
+export const getcategories_api = params =>{
+    return axios.get(`categories`,{
+        params:params
+    })
+}
