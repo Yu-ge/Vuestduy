@@ -39,9 +39,9 @@ export const showuser_api = params => {
 }
 // i编辑用户提交
 export const edituser_api = params => {
-    return axios.put(`users/${params.id}`,{
-        email:params.email,
-        mobile:params.mobile
+    return axios.put(`users/${params.id}`, {
+        email: params.email,
+        mobile: params.mobile
     })
 }
 // 根据id删除用户
@@ -57,8 +57,8 @@ export const getrolelist_api = params => {
     return axios.get(`roles`)
 }
 // 添加角色
-export const addrole_api = params=>{
-    return axios.post(`roles`,params)
+export const addrole_api = params => {
+    return axios.post(`roles`, params)
 }
 // id查询角色信息
 export const showrole_api = params => {
@@ -66,9 +66,9 @@ export const showrole_api = params => {
 }
 // i编辑角色提交
 export const editrole_api = params => {
-    return axios.put(`roles/${params.id}`,{
-        roleName:params.roleName,
-        roleDesc:params.roleDesc
+    return axios.put(`roles/${params.id}`, {
+        roleName: params.roleName,
+        roleDesc: params.roleDesc
     })
 }
 // 根据id删除用户
@@ -85,19 +85,49 @@ export const getrightstree_api = params => {
 }
 // 角色授权
 export const postright_api = params => {
-    return axios.post(`roles/${params.roleId}/rights`,{rids:params.rids})
+    return axios.post(`roles/${params.roleId}/rights`, { rids: params.rids })
 }
 // 查询角色
-export const getroles_api = params=>{
+export const getroles_api = params => {
     return axios.get(`roles`)
 }
 // 更新角色
-export const putrole_api = params=>{
-    return axios.put(`users/${params.id}/role`,{rid:params.rid})
+export const putrole_api = params => {
+    return axios.put(`users/${params.id}/role`, { rid: params.rid })
 }
 // 获取商品分类数据列表
-export const getcategories_api = params =>{
-    return axios.get(`categories`,{
-        params:params
+export const getcategories_api = params => {
+    return axios.get(`categories`, {
+        params: params
     })
+}
+// 添加分类
+export const postcategories_api = params => {
+    return axios.post(`categories`, { cat_pid: params.cat_pid, cat_name: params.cat_name, cat_level: params.cat_level })
+}
+// 获取分类参数
+export const getcateattr_api = params => {
+    return axios.get(`categories/${params.id}/attributes`, {
+        params: { sel: params.sel }
+    })
+}
+// 添加动态参数或者静态属性
+export const postcateattr_api = params => {
+    return axios.post(`categories/${params.id}/attributes`, {
+        attr_name: params.attr_name,
+        attr_sel: params.attr_sel,
+        attr_vals: params.attr_vals
+    })
+}
+// 编辑提交参数
+export const putcateattr_api = params => {
+    return axios.put(`categories/${params.id}/attributes/${params.attrId}`, {
+        attr_name: params.attr_name,
+        attr_sel: params.attr_sel,
+        attr_vals: params.attr_vals
+    })
+}
+// 删除事件
+export const deletecateattr_api = params => {
+    return axios.delete(`categories/${params.id}/attributes/${params.attrId}`)
 }
