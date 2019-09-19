@@ -17,11 +17,27 @@ import './assets/fonts/iconfont.css'
 // 引入 第三方表格插件
 import ZKtable from 'vue-table-with-tree-grid'
 // vue-table-with-tree-grid
-Vue.component('tree-table',ZKtable)
+Vue.component('tree-table', ZKtable)
 
 // 公共组件
 import coms from './common/com.vue'
 Vue.component('aaa', coms)
+
+// 时间处理过滤器
+Vue.filter('dateFormat', function(originVal) {
+  const dt = new Date(originVal)
+
+  const y = dt.getFullYear()
+  const m = (dt.getMonth() + 1 + '').padStart(2, '0')
+  const d = (dt.getDate() + '').padStart(2, '0')
+
+  const hh = (dt.getHours() + '').padStart(2, '0')
+  const mm = (dt.getMinutes() + '').padStart(2, '0')
+  const ss = (dt.getSeconds() + '').padStart(2, '0')
+
+  return `${y}-${m}-${d} ${hh}:${mm}:${ss}`
+})
+
 
 Vue.config.productionTip = false
 new Vue({

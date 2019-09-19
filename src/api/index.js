@@ -131,3 +131,14 @@ export const putcateattr_api = params => {
 export const deletecateattr_api = params => {
     return axios.delete(`categories/${params.id}/attributes/${params.attrId}`)
 }
+
+// 获取商品列表列表
+export const getgoods_api = params => {
+    return axios.get(`goods`, {
+        params: params
+    })
+}
+// 根据id删除商品
+export const deletegoods_api = params => {
+    return axios.delete(`goods/${params.id}`)
+}
