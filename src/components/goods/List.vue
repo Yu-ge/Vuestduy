@@ -25,7 +25,7 @@
           <el-table-column type="index"></el-table-column>
           <el-table-column prop="goods_name" label="商品名称" width="680px"></el-table-column>
           <el-table-column prop="goods_price" label="商品价格" width="90px"></el-table-column>
-          <el-table-column prop="goods_weight" label="商品价格" width="90px"></el-table-column>
+          <el-table-column prop="goods_weight" label="商品重量" width="90px"></el-table-column>
           <el-table-column prop="add_time" label="创建时间" width="170px">
             <template slot-scope="scope">{{scope.row.add_time | dateFormat}}</template>
           </el-table-column>

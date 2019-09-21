@@ -28,7 +28,7 @@
       >
         <el-tabs
           :tab-position="'left'"
-          style="height: 800px;"
+          style="height: 1400px;"
           @tab-click="handleClick"
           v-model="activeIndex"
           :before-leave="beforeTabLeave"
@@ -57,18 +57,54 @@
             </el-form-item>
           </el-tab-pane>
           <el-tab-pane label="商品参数" name="1">
-              
+            <!-- 渲染表单的item 的 -->
+            <el-form-item :label="item.attr_name" v-for="item in manylist" :key="item.attr_id">
+              <el-checkbox-group v-model="item.attr_vals">
+                <!-- 复选框组 -->
+                <el-checkbox :label="cb" border v-for="(cb,i) in item.attr_vals" :key="i"></el-checkbox>
+              </el-checkbox-group>
+            </el-form-item>
           </el-tab-pane>
-          <el-tab-pane label="商品属性" name="2">商品属性</el-tab-pane>
-          <el-tab-pane label="商品图片" name="3">商品图片</el-tab-pane>
-          <el-tab-pane label="商品内容" name="4">商品内容</el-tab-pane>
+          <!-- 商品属性 -->
+          <el-tab-pane label="商品属性" name="2">
+            <el-form-item v-for="item in onlylist" :key="item.attr_id" :label="item.attr_name">
+              <el-input v-model="item.attr_vals"></el-input>
+            </el-form-item>
+          </el-tab-pane>
+          <el-tab-pane label="商品图片" name="3">
+            <!-- 商品图片 -->
+            <!-- action 图片上传路径 -->
+            <el-upload
+              :action="uploadURL"
+              :on-preview="handlePreview"
+              :on-remove="handleRemove"
+              list-type="picture"
+              :headers="handerObj"
+              :on-success="handerSuccess"
+            >
+              <el-button size="small" type="primary">点击上传</el-button>
+              <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+            </el-upload>
+          </el-tab-pane>
+          <el-tab-pane label="商品内容" name="4">
+            <!-- 富文本编辑器组件 -->
+            <quill-editor v-model="addForm.goods_introduce"></quill-editor>
+            <!-- 添加商品的按钮 -->
+            <el-button type="primary" class="btnAdd" @click="add">添加商品</el-button>
+          </el-tab-pane>
         </el-tabs>
       </el-form>
     </el-card>
+
+    <!-- 图片预览 -->
+    <el-dialog title="预览" :visible.sync="previewVisble" width="50%">
+      <img :src="previewPath" alt class="previewPath">
+    </el-dialog>
   </div>
 </template>
 <script>
-import { getcategories_api,getcateattr_api } from '@/api'
+// import _ from 'lodash'
+import { getcategories_api, getcateattr_api, postgoods_api } from '@/api'
 export default {
   data() {
     return {
@@ -79,7 +115,12 @@ export default {
         goods_price: 0,
         goods_weight: 0,
         goods_number: 0,
-        goods_cat: 0
+        goods_cat: 0,
+        // 图片数组
+        pics: [],
+        // 商品详情
+        goods_introduce: '',
+        attrs:[]
       },
       //   添加校验规则
       addFormRules: {
@@ -108,7 +149,17 @@ export default {
         children: 'children'
       },
       // 动态参数 数据
-      manylist:[]
+      manylist: [],
+      // 静态属性数据
+      onlylist: [],
+      // 上传地址
+      uploadURL: 'http://127.0.0.1:8888/api/private/v1/upload',
+      // 图片上传请求头
+      handerObj: {
+        Authorization: window.sessionStorage.getItem('token')
+      },
+      previewPath: '',
+      previewVisble: false
     }
   },
   created() {
@@ -121,10 +172,28 @@ export default {
       //   console.log(tab, event)
       // 访问动态参数面板
       if (this.activeIndex === '1') {
-          const {data:res} = await getcateattr_api({id:this.cateid,sel:'many'})
-          this.manylist = res.data
-          console.log(res);
-          
+        const { data: res } = await getcateattr_api({
+          id: this.cateid,
+          sel: 'many'
+        })
+        // console.log(res);
+
+        res.data.forEach(item => {
+          item.attr_vals =
+            item.attr_vals.length === 0 ? [] : item.attr_vals.split(',')
+        })
+        this.manylist = res.data
+        // console.log(res)
+      } else if (this.activeIndex === '2') {
+        // 商品属性面板
+        const { data: res } = await getcateattr_api({
+          id: this.cateid,
+          sel: 'only'
+        })
+        this.onlylist = res.data
+        console.log(this.onlylist)
+      } else if (this.activeIndex === '3') {
+        // 商品图片面板
       }
     },
     // 获取所有商品分类数据
@@ -152,17 +221,96 @@ export default {
         return false
       }
     },
+    // 处理图片预览
+    handlePreview(file) {
+      console.log(file)
+      this.previewPath = file.response.data.url
+      this.previewVisble = true
+    },
+    // 处理移除图片
+    handleRemove(file) {
+      const filepath = file.response.data.tmp_path
+      const i = this.addForm.pics.findIndex(x => {
+        x.pic === filepath
+      })
+      this.addForm.pics.splice(i, 1)
+      console.log(this.addForm.pics)
+    },
+    // 监听图片上传成功的事件
+    handerSuccess(res) {
+      // 1，拼接得到一个图片信息对象
+      const picinfo = { pic: res.data.tmp_path }
+      this.addForm.pics.push(picinfo)
+      console.log(this.addForm.pics)
+    },
+    // 添加商品
+    add() {
+      this.$refs.addFormRef.validate(async valid => {
+        if (!valid) {
+          return this.$message.error('请填写必要的表单项')
+        }
+        // 执行添加
+        // goods_cat
+        // 处理分类id
+        const form = this.addForm.goods_cat.join(',')
+        // 处理动态参数
+        this.manylist.forEach(item=>{
+          const newinfo = {
+            attr_id:item.attr_id,
+            attr_value: item.attr_vals.join(' ')
+          }
+          this.addForm.attrs.push(newinfo)
+
+        })
+        // 处理静态属性
+        this.onlylist.forEach(item=>{
+          const newinfo = {
+            attr_id:item.attr_id,
+            attr_value: item.attr_vals
+          }
+          this.addForm.attrs.push(newinfo)
+
+        })
+
+        const { data: res } = await postgoods_api({
+          goods_name: this.addForm.goods_name,
+          goods_cat: form,
+          goods_price: this.addForm.goods_price,
+          goods_number: this.addForm.goods_number,
+          goods_weight: this.addForm.goods_weight,
+          goods_introduce: this.addForm.goods_introduce,
+          pics: this.addForm.pics,
+          attrs: this.addForm.attrs
+        })
+        console.log(res);
+        
+        if (res.meta.status !== 201) {
+          return this.$message.error('添加失败！')
+        }
+        this.$message.success('添加成功！')
+        this.$router.push('/goods')
+      })
+    }
   },
-  computed:{
-       // 当前选中的id
+  computed: {
+    // 当前选中的id
     cateid() {
       if (this.addForm.goods_cat.length === 3) {
         return this.addForm.goods_cat[2]
       }
       return null
-    },
+    }
   }
 }
 </script>
 <style lang="less" scoped>
+.el-checkbox {
+  margin: 0 5px !important;
+}
+.previewPath {
+  width: 100%;
+}
+.btnAdd {
+  margin-top: 15px;
+}
 </style>

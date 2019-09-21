@@ -142,3 +142,31 @@ export const getgoods_api = params => {
 export const deletegoods_api = params => {
     return axios.delete(`goods/${params.id}`)
 }
+// 添加商品
+export const postgoods_api = params => {
+    return axios.post(`goods`, {
+        goods_name: params.goods_name,
+        goods_cat: params.goods_cat,
+        goods_price: params.goods_price,
+        goods_number: params.goods_number,
+        goods_weight: params.goods_weight,
+        goods_introduce: params.goods_introduce,
+        pics: params.pics,
+        attrs: params.attrs,
+
+    })
+}
+
+// 获取订单
+export const getorders_api = params => {
+    return axios.get(`orders`,{params})
+}
+
+// 基于时间的折线图
+export const getal_api =params=>{
+    return axios.get(`reports/type/1`)
+}
+// 查询物流
+export const getkuaidi_api =params=>{
+    return axios.get(`kuaidi/1106975712662`)
+}

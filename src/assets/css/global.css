@@ -24,3 +24,6 @@ body,
   font-size: 13px;
 
 }
+.ql-editor{
+  min-height: 300px
+}
